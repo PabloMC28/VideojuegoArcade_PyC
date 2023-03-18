@@ -1,5 +1,8 @@
+namespace SpriteKind {
+    export const Score = SpriteKind.create()
+}
 scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile0`, function (sprite, location) {
-    game.gameOver(false)
+    game.gameOver(true)
     effects.confetti.endScreenEffect()
 })
 controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
@@ -36,58 +39,44 @@ controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
         ..............................
         `)
     if (Personaje.isHittingTile(CollisionDirection.Bottom)) {
-        Personaje.vy = -100
+        Personaje.vy = -85
     }
 })
 scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.greenSwitchUp, function (sprite, location) {
-    Personaje.sayText("Pulsa el botón B para pasar a la siguiente fase")
-    if (controller.B.isPressed()) {
-        Personaje.sayText("Tienes que ser rápido si no quieres que el murciélago me pique", 2000, true)
+    if (info.score() == 1) {
+        Personaje.sayText("Correeee", 3000, false)
         tiles.setCurrentTilemap(tilemap`level2`)
-        Enemigocansino = sprites.create(img`
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . c c . c c . . . . . . . . 
-            . . f 3 c c 3 c c c . . . . . . 
-            . f c 3 b c 3 b c c c . . . . . 
-            f c b b b b b b b b f f . . . . 
-            c c 1 b b b 1 b b b f f . . . . 
-            c b b b b b b b b c f f f . . . 
-            c b 1 f f 1 c b b f f f f . . . 
-            f f 1 f f 1 f b c c b b b . . . 
-            f f f f f f f b f c c c c . . . 
-            f f 2 2 2 2 f b f b b c c c . . 
-            . f 2 2 2 2 2 b c c b b c . . . 
-            . . f 2 2 2 b f f c c b b c . . 
-            . . . f f f f f f f c c c c c . 
-            . . . . . . . . . . . . c c c c 
-            `, SpriteKind.Enemy)
+        tiles.placeOnTile(Personaje, tiles.getTileLocation(1, 11))
+        info.startCountdown(30)
+    } else {
+        game.splash("Consigue la moneda secreta para pasar a la siguiente fase")
+        tiles.placeOnTile(Personaje, tiles.getTileLocation(11, 3))
     }
 })
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     Personaje.setImage(img`
-        ......................22222...
-        ....................2222222...
-        .....................dfdddd...
-        .....................dddddd...
-        .....................333ddd...
-        .....................dddddd...
-        .......................dd.....
-        ......................2222....
-        ......................2222....
-        ......................2222....
-        ......................2222....
-        ......................2d22....
-        ......................2222....
-        ......................8888....
-        ......................8888....
-        .......................88.....
-        .......................88.....
-        .......................88.....
-        ......................fff.....
         ..............................
         ..............................
-        ..............................
+        ...222222.....................
+        .22222222.....................
+        ...dfdddd.....................
+        ...dddddd.....................
+        ...333ddd.....................
+        ...dddddd.....................
+        .....dd.......................
+        ....2222......................
+        ....2222......................
+        ....2222......................
+        ....2222......................
+        ....2222......................
+        ....2d22......................
+        ....2222......................
+        ....8888......................
+        ....8888......................
+        .....88.......................
+        .....88.......................
+        .....88.......................
+        ....fff.......................
         ..............................
         ..............................
         ..............................
@@ -98,6 +87,9 @@ controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
         ..............................
         `)
     Personaje.startEffect(effects.spray, 500)
+})
+info.onCountdownEnd(function () {
+    game.gameOver(false)
 })
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     Personaje.setImage(img`
@@ -134,12 +126,15 @@ controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
         `)
     Personaje.startEffect(effects.spray, 500)
 })
-sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSprite) {
-    info.setLife(info.life() - 1)
-    sprites.destroy(Enemigocansino, effects.coolRadial, 500)
+info.onLifeZero(function () {
+    game.gameOver(false)
 })
-let Enemigocansino: Sprite = null
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Score, function (sprite, otherSprite) {
+    sprites.destroy(otherSprite, effects.disintegrate, 500)
+    info.changeScoreBy(1)
+})
 let Personaje: Sprite = null
+game.splash("Consigue la moneda secreta para pasar a la siguiente fase")
 scene.setBackgroundImage(img`
     9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
     9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
@@ -190,7 +185,7 @@ scene.setBackgroundImage(img`
     ddddddd999999999999999999999999999999999ddd9999999999999999999999999999999999999999ddddddddd999999999999999999999999999999999999999999999dd7777777777777dddddddd
     ddddddd999999999999999999999999999999ddddddd999999999999999999999999999999999999999dddddddddd999999999999999999999999999999999999999977777777777777777777ddddddd
     ddddddd9999999999999999999999999999ddddddddd999999999999999999999999999999999999999dddddddddd9999999999999999999999999999999999999777777777777777777777777dddddd
-    ddddddd99999999999999999999999999dddddddddddd99999999999999999999999999999999999999ddddddddddd999999999999977777777777777777777777777777777777777777777777dddddd
+    ddddddd99999999999999999999999999dddddddddddd999999999999999999999999999999999999993dddddddddd999999999999977777777777777777777777777777777777777777777777dddddd
     ddddddd9999999999999999999999999ddddddddddddd9999999999999999999999999999999999999dddddddddddd977777777777777777777777777777777777777777777777777777777777dddddd
     ddddddd999999999999999999999999dddddddddddddd999999999999999999999999999999999999ddddddddddddd977777777777777777777777777777777777777777777777777777777777dddddd
     ddddddd999999999997999999999999dddddddddddddd999999999999999999999999999999999999ddddddddddddd777777777777777777777777777777777777777777777777777777777777dddddd
@@ -295,37 +290,17 @@ Personaje = sprites.create(img`
     ..............................
     ..............................
     `, SpriteKind.Player)
-controller.moveSprite(Personaje, 100, 0)
+controller.moveSprite(Personaje, 50, 0)
 tiles.setCurrentTilemap(tilemap`level1`)
-tiles.placeOnTile(Personaje, tiles.getTileLocation(randint(4, 8), 12))
+tiles.placeOnTile(Personaje, tiles.getTileLocation(randint(5, 7), 12))
 scene.cameraFollowSprite(Personaje)
 info.setLife(3)
-info.setScore(0)
-Enemigocansino = sprites.create(img`
-    . . . . . . . . . . . . . . . . 
-    . . . . . . . . . . . . . . . . 
-    . . . c c . c c . . . . . . . . 
-    . . f 3 c c 3 c c c . . . . . . 
-    . f c 3 b c 3 b c c c . . . . . 
-    f c b b b b b b b b f f . . . . 
-    c c 1 b b b 1 b b b f f . . . . 
-    c b b b b b b b b c f f f . . . 
-    c b 1 f f 1 c b b f f f f . . . 
-    f f 1 f f 1 f b c c b b b . . . 
-    f f f f f f f b f c c c c . . . 
-    f f 2 2 2 2 f b f b b c c c . . 
-    . f 2 2 2 2 2 b c c b b c . . . 
-    . . f 2 2 2 b f f c c b b c . . 
-    . . . f f f f f f f c c c c c . 
-    . . . . . . . . . . . . c c c c 
-    `, SpriteKind.Enemy)
 Personaje.ay = 100
+info.setScore(0)
+let Moneda = sprites.create(assets.tile`myTile3`, SpriteKind.Score)
 game.onUpdate(function () {
     if (Personaje.tileKindAt(TileDirection.Bottom, sprites.dungeon.hazardLava0)) {
         tiles.placeOnTile(Personaje, tiles.getTileLocation(randint(4, 8), 12))
         info.changeLifeBy(-1)
     }
-})
-game.onUpdateInterval(5000, function () {
-    Enemigocansino.follow(Personaje, 50)
 })
