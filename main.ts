@@ -4,6 +4,8 @@ namespace SpriteKind {
 scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile0`, function (sprite, location) {
     game.gameOver(true)
     effects.confetti.endScreenEffect()
+    music.play(music.stringPlayable("C D E F G A B C5 ", 120), music.PlaybackMode.UntilDone)
+    game.showLongText("Enhorabuena por esta gran partida!!!", DialogLayout.Bottom)
 })
 controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
     Personaje.setImage(img`
@@ -47,7 +49,26 @@ scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.greenSwitchUp, function (
         Personaje.sayText("Correeee", 3000, false)
         tiles.setCurrentTilemap(tilemap`level2`)
         tiles.placeOnTile(Personaje, tiles.getTileLocation(1, 11))
-        info.startCountdown(30)
+        info.startCountdown(15)
+        PezCansino = sprites.create(img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . c c c c . . . . 
+            . . . . . . c c d d d d c . . . 
+            . . . . . c c c c c c d c . . . 
+            . . . . c c 4 4 4 4 d c c . . . 
+            . . . c 4 d 4 4 4 4 4 1 c . c c 
+            . . c 4 4 4 1 4 4 4 4 d 1 c 4 c 
+            . c 4 4 4 4 1 4 4 4 4 4 1 c 4 c 
+            f 4 4 4 4 4 1 4 4 4 4 4 1 4 4 f 
+            f 4 4 4 f 4 1 c c 4 4 4 1 f 4 f 
+            f 4 4 4 4 4 1 4 4 f 4 4 d f 4 f 
+            . f 4 4 4 4 1 c 4 f 4 d f f f f 
+            . . f f 4 d 4 4 f f 4 c f c . . 
+            . . . . f f 4 4 4 4 c d b c . . 
+            . . . . . . f f f f d d d c . . 
+            . . . . . . . . . . c c c . . . 
+            `, SpriteKind.Enemy)
+        PezCansino.follow(Personaje, 30)
     } else {
         game.splash("Consigue la moneda secreta para pasar a la siguiente fase")
         tiles.placeOnTile(Personaje, tiles.getTileLocation(11, 3))
@@ -132,7 +153,19 @@ info.onLifeZero(function () {
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Score, function (sprite, otherSprite) {
     sprites.destroy(otherSprite, effects.disintegrate, 500)
     info.changeScoreBy(1)
+    music.play(music.melodyPlayable(music.baDing), music.PlaybackMode.UntilDone)
 })
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
+    sprites.destroy(otherSprite, effects.disintegrate, 500)
+    info.changeLifeBy(1)
+    music.play(music.melodyPlayable(music.beamUp), music.PlaybackMode.UntilDone)
+})
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSprite) {
+    info.changeLifeBy(-1)
+    sprites.destroy(otherSprite, effects.bubbles, 1000)
+    Personaje.startEffect(effects.hearts)
+})
+let PezCansino: Sprite = null
 let Personaje: Sprite = null
 game.splash("Consigue la moneda secreta para pasar a la siguiente fase")
 scene.setBackgroundImage(img`
@@ -298,9 +331,53 @@ info.setLife(3)
 Personaje.ay = 100
 info.setScore(0)
 let Moneda = sprites.create(assets.tile`myTile3`, SpriteKind.Score)
+let Vida = sprites.create(img`
+    ....................
+    ....................
+    ....................
+    ....................
+    ....................
+    ....................
+    .......22...22......
+    ......2322.2222.....
+    ......232222222.....
+    ......222222222.....
+    .......22222b2......
+    ........222b2.......
+    .........222........
+    ..........2.........
+    ....................
+    ....................
+    ....................
+    ....................
+    ....................
+    ....................
+    `, SpriteKind.Food)
+tiles.placeOnTile(Vida, tiles.getTileLocation(1, 6))
 game.onUpdate(function () {
     if (Personaje.tileKindAt(TileDirection.Bottom, sprites.dungeon.hazardLava0)) {
         tiles.placeOnTile(Personaje, tiles.getTileLocation(randint(4, 8), 12))
         info.changeLifeBy(-1)
     }
+})
+game.onUpdateInterval(10000, function () {
+    PezCansino = sprites.create(img`
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . c c c c . . . . 
+        . . . . . . c c d d d d c . . . 
+        . . . . . c c c c c c d c . . . 
+        . . . . c c 4 4 4 4 d c c . . . 
+        . . . c 4 d 4 4 4 4 4 1 c . c c 
+        . . c 4 4 4 1 4 4 4 4 d 1 c 4 c 
+        . c 4 4 4 4 1 4 4 4 4 4 1 c 4 c 
+        f 4 4 4 4 4 1 4 4 4 4 4 1 4 4 f 
+        f 4 4 4 f 4 1 c c 4 4 4 1 f 4 f 
+        f 4 4 4 4 4 1 4 4 f 4 4 d f 4 f 
+        . f 4 4 4 4 1 c 4 f 4 d f f f f 
+        . . f f 4 d 4 4 f f 4 c f c . . 
+        . . . . f f 4 4 4 4 c d b c . . 
+        . . . . . . f f f f d d d c . . 
+        . . . . . . . . . . c c c . . . 
+        `, SpriteKind.Enemy)
+    PezCansino.follow(Personaje, randint(10, 30))
 })
